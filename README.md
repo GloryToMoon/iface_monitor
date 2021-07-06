@@ -1,6 +1,6 @@
 ## Network interface packets graph
 ### Disclaimer ⚠️
-> Works only on Linux Python3. Tested on Mint.  
+> Works only on Linux Python3.  
   
 Draw simple graph of sended/received packets.  
 ![alt text](https://github.com/GloryToMoon/iface_monitor/blob/assets/choose_iface.jpg)  
