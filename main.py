@@ -5,14 +5,10 @@ import os
 win=curses.initscr()
 lineno=0
 
-def printl(line, highlight=False):
+def printl(line):
 	global lineno
 	try:
-		if highlight:
-			line += " " * (win.getmaxyx()[1] - len(line))
-			win.addstr(lineno, 0, line, curses.A_REVERSE)
-		else:
-			win.addstr(lineno, 0, line, 0)
+		win.addstr(lineno, 0, line, 0)
 	except curses.error:
 		lineno = 0
 		win.refresh()
@@ -47,10 +43,10 @@ def find_max(mas,max):
 
 def print_num(mas):
 	global lineno
-	row=int(rows)
+	row=rows
 	for i in range(4):
 		printl(" ")
-	for a in range(int(rows)):
+	for _ in range(rows):
 		string=""
 		for i in mas:
 			s=False
@@ -67,18 +63,26 @@ def print_num(mas):
 				char="$"
 			else:
 				char=" "
-			string+=char
+			string+=char*2
 		row-=1
 		printl(string)
+	for i in range(3):
+		printl(" "*(columns-1)*2)
 	win.refresh()
 	lineno=0
+
 def stat2num(mas,max):
 	mas_tmp=[]
 	for i in range(len(mas)):
-		s=int(mas[i][0]/max*int(rows))
-		r=int(mas[i][1]/max*int(rows))
+		if max==0:
+			s=0
+			r=0
+		else:
+			s=mas[i][0]/max*rows
+			r=mas[i][1]/max*rows
 		mas_tmp.append([s,r])
 	print_num(mas_tmp)
+
 def get_stat(mas,max):
 	global inet
 	sended_a=psutil.net_io_counters(pernic=True)[inet].packets_sent
@@ -87,7 +91,7 @@ def get_stat(mas,max):
 	recv_b=psutil.net_io_counters(pernic=True)[inet].packets_recv
 	sended_b=psutil.net_io_counters(pernic=True)[inet].packets_sent
 	mas.append([sended_b-sended_a,recv_b-recv_a])
-	if len(mas)>int(columns):
+	if len(mas)>columns:
 		mas.pop(0)
 	max=find_max(mas,max)
 	return mas,max
@@ -122,16 +126,23 @@ def choose_inet():
 		win.refresh()
 		lineno=0
 
+def getSize():
+	rows,columns=os.popen('stty size', 'r').read().split()
+	rows=int(rows)
+	columns=int(columns)
+	while columns%2!=0:
+		columns-=1
+	return rows,int(columns/2)
 
 if __name__=="__main__":
-	setup()
 	mas=[]
 	max=0
-	rows, columns = os.popen('stty size', 'r').read().split()
+	setup()
+	rows,columns=getSize()
 	inet=choose_inet()
 	while True:
-		rows, columns = os.popen('stty size', 'r').read().split()
-		rows=str(int(rows)-7)
+		rows,columns=getSize()
+		rows=rows-7
 		try:
 			mas,max=get_stat(mas,max)
 			stat2num(mas,max)
@@ -139,4 +150,3 @@ if __name__=="__main__":
 			tear_down()
 			print ("See you soon...")
 			exit()
-	tear_down()
